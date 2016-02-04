@@ -19,9 +19,9 @@ def build_LM(in_file):
     print 'building language models...'
     # This is an empty method
     # Pls implement your code in below
-    f = open(in_file, 'r')
+    read_file = open(in_file, 'r')
     langModel = {}
-    for line in f:
+    for line in read_file:
         language = line.split(" ")[0]
         line = line[(len(language)+1):-1] #omit the language, extra space and endline
         line_size = len(line)
@@ -41,9 +41,6 @@ def build_LM(in_file):
             else:
             	gram = line[((i+1)-gram_size):i+1]
 
-            if gram == "h   ":
-            	print line
-
             if gram in langModel:
             	langModel[gram][languages[language]]+=1
             else:
@@ -52,7 +49,7 @@ def build_LM(in_file):
             		a +=1
             	langModel[gram][languages[language]]+=1
             # print language + " " + gram + ": " + str(langModel[gram])
-    
+    read_file.close()
     return langModel
     
 def test_LM(in_file, out_file, LM):
@@ -64,9 +61,9 @@ def test_LM(in_file, out_file, LM):
     print "testing language models..."
     # This is an empty method
     # Pls implement your code in below
-    f = open(in_file)
-    o = open(out_file, 'w')
-    for line in f:
+    read_file = open(in_file)
+    write_file = open(out_file, 'w')
+    for line in read_file:
         line = line[:-1] #omit the endline
         line_size = len(line)
         total_prob = [0.0, 0.0, 0.0]
@@ -88,21 +85,22 @@ def test_LM(in_file, out_file, LM):
 
             if gram in LM:
             	found_grams += 1
-            	print "found: " + gram
+            	# print "found: " + gram
             	for l in languages:
             		total_prob[languages[l]] += math.log(float(LM[gram][languages[l]]) / float(lang_count[languages[l]]))
-            else:
-            	print "not found: " + gram
+            # else:
+            # 	print "not found: " + gram
 
         if (found_grams/total_grams) > alien_threshold:
         	final_lang = inv_languages[total_prob.index(max(total_prob))]
-        print "language is " + final_lang
-        print line + "\n"
+        # print "language is " + final_lang
+        # print line + "\n"
 
-        o.write(final_lang + " ")
-        o.write(line + "\n")
+        write_file.write(final_lang + " ")
+        write_file.write(line + "\n")
 	
-    f.close()
+    read_file.close()
+    write_file.close()
             	
 
 def usage():
