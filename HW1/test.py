@@ -1,4 +1,4 @@
 
-langModel = [[0 for x in range(5)] for x in range(1)] 
+langModel = [0, 0, 0] 
 
-print langModel
+print langModel.index(0)

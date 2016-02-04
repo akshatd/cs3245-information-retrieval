@@ -3,9 +3,13 @@ import re
 import nltk
 import sys
 import getopt
+import math
 
 gram_size = 4
 languages = {"indonesian": 0, "malaysian":1, "tamil":2}
+inv_languages = {0:"indonesian", 1:"malaysian", 2:"tamil"}
+lang_count = [0, 0, 0]
+alien_threshold = 0.5
 
 def build_LM(in_file):
     """
@@ -20,30 +24,35 @@ def build_LM(in_file):
     for line in f:
         language = line.split(" ")[0]
         line = line[(len(language)+1):-1] #omit the language, extra space and endline
-        # print "printing end of line: "
-        # print line[len(line)-1]
         line_size = len(line)
         for i in range(line_size + gram_size -1):
+            lang_count[languages[language]] += 1
             gram = ""
             if((i+1)<gram_size):
+            	#add padding
                 for x in xrange(gram_size - (i+1)):
                 	gram += ' '
                 gram += line[:i+1]
             elif(i >= line_size):
             	gram += line[(i+1)-gram_size:]
+            	#add padding
             	for x in xrange((i+1) - line_size):
                 	gram += ' '
             else:
             	gram = line[((i+1)-gram_size):i+1]
 
+            if gram == "h   ":
+            	print line
+
             if gram in langModel:
             	langModel[gram][languages[language]]+=1
             else:
             	langModel[gram] = [1, 1, 1]
+            	for a in lang_count:
+            		a +=1
             	langModel[gram][languages[language]]+=1
-            print language + " " + gram + ": " + str(langModel[gram])
-
-
+            # print language + " " + gram + ": " + str(langModel[gram])
+    
     return langModel
     
 def test_LM(in_file, out_file, LM):
@@ -56,24 +65,45 @@ def test_LM(in_file, out_file, LM):
     # This is an empty method
     # Pls implement your code in below
     f = open(in_file)
+    o = open(out_file, 'w')
     for line in f:
-    	line_size = len(line)
-        for i in range(line_size + gram_size):
+        line = line[:-1] #omit the endline
+        line_size = len(line)
+        total_prob = [0.0, 0.0, 0.0]
+        final_lang = "other"
+        total_grams = found_grams = 0.0
+        for i in range(line_size + gram_size -1):
+            total_grams += 1
             gram = ""
-            if(i+1<gram_size):
-                for x in xrange(gram_size - i-1):
+            if((i+1)<gram_size):
+                for x in xrange(gram_size - (i+1)):
                 	gram += ' '
-                gram += line[:i]
+                gram += line[:i+1]
             elif(i >= line_size):
-            	gram += line[i-gram_size+1:]
-            	for x in xrange(line_size - i-1):
+            	gram += line[(i+1)-gram_size:]
+            	for x in xrange((i+1) - line_size):
                 	gram += ' '
             else:
-            	gram = line[(i-4):i]
-            # if gram in LM:
+            	gram = line[((i+1)-gram_size):i+1]
 
+            if gram in LM:
+            	found_grams += 1
+            	print "found: " + gram
+            	for l in languages:
+            		total_prob[languages[l]] += math.log(float(LM[gram][languages[l]]) / float(lang_count[languages[l]]))
+            else:
+            	print "not found: " + gram
 
+        if (found_grams/total_grams) > alien_threshold:
+        	final_lang = inv_languages[total_prob.index(max(total_prob))]
+        print "language is " + final_lang
+        print line + "\n"
 
+        o.write(final_lang + " ")
+        o.write(line + "\n")
+	
+    f.close()
+            	
 
 def usage():
     print "usage: " + sys.argv[0] + " -b input-file-for-building-LM -t input-file-for-testing-LM -o output-file"
@@ -98,5 +128,4 @@ if input_file_b == None or input_file_t == None or output_file == None:
     sys.exit(2)
 
 LM = build_LM(input_file_b)
-# print LM
-# test_LM(input_file_t, output_file, LM)
+test_LM(input_file_t, output_file, LM)
