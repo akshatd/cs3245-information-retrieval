@@ -19,9 +19,9 @@ def build_LM(in_file):
     langModel = {}
     for line in f:
         language = line.split(" ")[0]
-        line = line[(len(language)+1):] #omit the language and extra space
-        print "printing end of line: "
-        print line[len(line)-1]
+        line = line[(len(language)+1):-1] #omit the language, extra space and endline
+        # print "printing end of line: "
+        # print line[len(line)-1]
         line_size = len(line)
         for i in range(line_size + gram_size -1):
             gram = ""
@@ -31,7 +31,7 @@ def build_LM(in_file):
                 gram += line[:i+1]
             elif(i >= line_size):
             	gram += line[(i+1)-gram_size:]
-            	for x in xrange(line_size - i-1):
+            	for x in xrange((i+1) - line_size):
                 	gram += ' '
             else:
             	gram = line[((i+1)-gram_size):i+1]
@@ -39,7 +39,7 @@ def build_LM(in_file):
             if gram in langModel:
             	langModel[gram][languages[language]]+=1
             else:
-            	langModel[gram] = [0, 0, 0]
+            	langModel[gram] = [1, 1, 1]
             	langModel[gram][languages[language]]+=1
             print language + " " + gram + ": " + str(langModel[gram])
 
