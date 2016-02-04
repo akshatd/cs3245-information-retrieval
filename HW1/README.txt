@@ -16,7 +16,7 @@ and formatted correctly.
 
 Please initial one of the following statements.
 
-[ ] I, A0000000X, certify that I have followed the CS 3245 Information
+[x] I, A0000000X, certify that I have followed the CS 3245 Information
 Retrieval class guidelines for homework assignments.  In particular, I
 expressly vow that I have followed the Facebook rule in discussing
 with others in doing the assignment and did not take notes (digital or

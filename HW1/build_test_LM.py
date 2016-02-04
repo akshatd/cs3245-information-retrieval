@@ -4,6 +4,9 @@ import nltk
 import sys
 import getopt
 
+gram_size = 4
+languages = {"indonesian": 0, "malaysian":1, "tamil":2}
+
 def build_LM(in_file):
     """
     build language models for each label
@@ -12,6 +15,36 @@ def build_LM(in_file):
     print 'building language models...'
     # This is an empty method
     # Pls implement your code in below
+    f = open(in_file, 'r')
+    langModel = {}
+    for line in f:
+        language = line.split(" ")[0]
+        line = line[(len(language)+1):] #omit the language and extra space
+        print "printing end of line: "
+        print line[len(line)-1]
+        line_size = len(line)
+        for i in range(line_size + gram_size -1):
+            gram = ""
+            if((i+1)<gram_size):
+                for x in xrange(gram_size - (i+1)):
+                	gram += ' '
+                gram += line[:i+1]
+            elif(i >= line_size):
+            	gram += line[(i+1)-gram_size:]
+            	for x in xrange(line_size - i-1):
+                	gram += ' '
+            else:
+            	gram = line[((i+1)-gram_size):i+1]
+
+            if gram in langModel:
+            	langModel[gram][languages[language]]+=1
+            else:
+            	langModel[gram] = [0, 0, 0]
+            	langModel[gram][languages[language]]+=1
+            print language + " " + gram + ": " + str(langModel[gram])
+
+
+    return langModel
     
 def test_LM(in_file, out_file, LM):
     """
@@ -22,6 +55,25 @@ def test_LM(in_file, out_file, LM):
     print "testing language models..."
     # This is an empty method
     # Pls implement your code in below
+    f = open(in_file)
+    for line in f:
+    	line_size = len(line)
+        for i in range(line_size + gram_size):
+            gram = ""
+            if(i+1<gram_size):
+                for x in xrange(gram_size - i-1):
+                	gram += ' '
+                gram += line[:i]
+            elif(i >= line_size):
+            	gram += line[i-gram_size+1:]
+            	for x in xrange(line_size - i-1):
+                	gram += ' '
+            else:
+            	gram = line[(i-4):i]
+            # if gram in LM:
+
+
+
 
 def usage():
     print "usage: " + sys.argv[0] + " -b input-file-for-building-LM -t input-file-for-testing-LM -o output-file"
@@ -46,4 +98,5 @@ if input_file_b == None or input_file_t == None or output_file == None:
     sys.exit(2)
 
 LM = build_LM(input_file_b)
-test_LM(input_file_t, output_file, LM)
+# print LM
+# test_LM(input_file_t, output_file, LM)
