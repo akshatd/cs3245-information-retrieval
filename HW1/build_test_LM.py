@@ -9,7 +9,12 @@ gram_size = 4
 languages = {"indonesian": 0, "malaysian":1, "tamil":2}
 inv_languages = {0:"indonesian", 1:"malaysian", 2:"tamil"}
 lang_count = [0, 0, 0]
-alien_threshold = 0.5
+alien_threshold = 0.5 #set threshold here to see what happens :D
+
+def cleanup(line):
+	clean_line = ""
+	clean_line.join(e for e in line if e.isalnum())
+	return clean_line.lower()
 
 def build_LM(in_file):
     """
@@ -22,6 +27,7 @@ def build_LM(in_file):
     read_file = open(in_file, 'r')
     langModel = {}
     for line in read_file:
+    	# line = cleanup(line)
         language = line.split(" ")[0]
         line = line[(len(language)+1):-1] #omit the language, extra space and endline
         line_size = len(line)
@@ -39,6 +45,7 @@ def build_LM(in_file):
             	for x in xrange((i+1) - line_size):
                 	gram += ' '
             else:
+            	#normal case
             	gram = line[((i+1)-gram_size):i+1]
 
             if gram in langModel:
@@ -73,14 +80,17 @@ def test_LM(in_file, out_file, LM):
             total_grams += 1
             gram = ""
             if((i+1)<gram_size):
+            	#add padding
                 for x in xrange(gram_size - (i+1)):
                 	gram += ' '
                 gram += line[:i+1]
             elif(i >= line_size):
+            	#add padding
             	gram += line[(i+1)-gram_size:]
             	for x in xrange((i+1) - line_size):
                 	gram += ' '
             else:
+            	#normal case
             	gram = line[((i+1)-gram_size):i+1]
 
             if gram in LM:
