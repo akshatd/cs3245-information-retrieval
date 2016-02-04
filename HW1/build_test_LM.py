@@ -4,6 +4,7 @@ import nltk
 import sys
 import getopt
 import math
+import time
 
 gram_size = 4
 languages = {"indonesian": 0, "malaysian":1, "tamil":2}
@@ -11,10 +12,11 @@ inv_languages = {0:"indonesian", 1:"malaysian", 2:"tamil"}
 lang_count = [0, 0, 0]
 alien_threshold = 0.5 #set threshold here to see what happens :D
 
-def cleanup(line):
-	clean_line = ""
-	clean_line.join(e for e in line if e.isalnum())
-	return clean_line.lower()
+#to remove special characters and numbers, should be better at matching
+# def cleanup(line):
+# 	clean_line = ""
+# 	clean_line.join(e for e in line if e.isalnum())
+# 	return clean_line.lower()
 
 def build_LM(in_file):
     """
@@ -71,6 +73,7 @@ def test_LM(in_file, out_file, LM):
     read_file = open(in_file)
     write_file = open(out_file, 'w')
     for line in read_file:
+    	# line = cleanup(line)
         line = line[:-1] #omit the endline
         line_size = len(line)
         total_prob = [0.0, 0.0, 0.0]
@@ -101,7 +104,7 @@ def test_LM(in_file, out_file, LM):
             # else:
             # 	print "not found: " + gram
 
-        if (found_grams/total_grams) > alien_threshold:
+        if (found_grams/total_grams) >= alien_threshold:
         	final_lang = inv_languages[total_prob.index(max(total_prob))]
         # print "language is " + final_lang
         # print line + "\n"
@@ -135,5 +138,9 @@ if input_file_b == None or input_file_t == None or output_file == None:
     usage()
     sys.exit(2)
 
+# t0 = time.time()
 LM = build_LM(input_file_b)
 test_LM(input_file_t, output_file, LM)
+# t1 = time.time()
+
+# print "this run with n=" + str(gram_size) + " took " + str(t1-t0)

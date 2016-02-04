@@ -3,6 +3,7 @@ This is the README file for A0103516U's submission
 == General Notes about this assignment ==
 
 Hi Min, my code quality is bad, but i just tried to make it work first.
+I used a threshold to determine of the string is alien, and ive put my threshold as 50%, since if there are more ngrams that arent recognised than there are, it is highly likely that the sentence doesnt belong to a particular language.
 I have tried to name variables to signify their purpose and added comments to explain further
 Sorry for the trouble!
 

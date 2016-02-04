@@ -5,14 +5,35 @@ Replace this file with the answers to the essay questions here.
 i.e., the gram units are characters. Do you expect token-based ngram
 models to perform better?
 
+  -	For accuracy, token based ngrams would only be able to perform similar or worse, when they have been properly stemmed/lemmatized.
+	Having character based ngrams helps us identify smaller sequences of letters which could be the root words.
+	In this way, character based ngrams will be able to match a larger portion of the input text to the trained model, thus allowing more probabilites to be resolved as more sequences of letters will be identified from within the language model.
+  -	However, having words as token would reduce the number of total tokens, and hence speed up the process of building the language model, and also the process of testing the input text.
+
 2. What do you think will happen if we provided more data for each
 category for you to build the language models? What if we only
 provided more data for Indonesian?
 
+  -	If more data was provided for each category, the add one smoothing would have a lesser impact on the final probabilites of each of the ngrams. This would allow us to have larger overall probability values, perhaps even being able to multiply them directly instead of having to log() them.
+  	Having more data would also allow for more possibilities of ngrams, hence it might increase the dictionary size as well, which would affect performance because the dictionary needs to be queried for testing each ngram.
+  -	If only more data from indonesian language was provided, due to add one smoothing, the other languages would have a lot of ngrams with frequency counts of 1.
+  	This would artificially dwarf the probabilities of an ngram in their language when it is compared. Also, it would increase the probabilities of the ngrams occurring in indonesian, thus favouring indonesian in the language selection process even if very few ngrams out of the entire sentence match the ngrams in indonesian. This will happen because most of the ngrams in indonesian will have high frequency counts, thus leading to higher individual probobilities.
+
 3. What do you think will happen if you strip out punctuations and/or
 numbers? What about converting upper case characters to lower case?
+
+  -	Stripping out the punctuations and converting to lower case would make lesser unique ngrams in the dictionary, thus improving the frequency counts of the 	ngrams in themselves, and reducing the adverse effects of add one smoothing. However, this will also lead to a higher chance of the same ngram being recognised as another language, thus bringing the overall probabilities of a sentence belonging to different languages much closer.
+  -	Converting to lower case will certainly be helpful, since logically two ngrams with different cases are the same, unless one of them is an acronym. Hence, just converting to lower case can be done without caring about the negative effects
 
 4. We use 4-gram models in this homework assignment. What do you think
 will happen if we varied the ngram size, such as using unigrams,
 bigrams and trigrams?
 
+  -	upopn varying the ngram size, it is seen that, as expected, having a higher gram size increases the execution time of the code.
+  The timings observed were as follows:
+  size = 2: 0.07200
+  size = 3: 0.07899
+  size = 4: 0.09200
+  size = 5: 0.11999
+
+  -	Another thing that will happen is, that the frequency counts of each of the ngrams becomes higher, and the total number of unique ngrams becomes lower. This is because it is easier to find a smaller number of characters in a sentence, owing to simple probability.
