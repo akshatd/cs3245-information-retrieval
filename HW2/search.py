@@ -1,10 +1,8 @@
 #HW2 by akshat dubey
-
+#used reuters training data for this HW, found in NLTK toolkit
 import nltk
 import sys
 import getopt
-
-           	
 
 def usage():
     print "usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results"
