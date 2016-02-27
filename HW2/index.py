@@ -8,6 +8,7 @@ import getopt
 import time
 from collections import OrderedDict
 import math
+import csv
 
 dictionary = set()
 positngs_list = {}
@@ -43,7 +44,8 @@ def write_dictionary():
 
 def write_postings():
     sorted_postings = OrderedDict(sorted(positngs_list.items(), key=lambda t: t[0]))
-    postings_file = open(postings_file_p, 'w')
+    temp_file = open(postings_file_p, 'w')
+    postings_file = csv.writer(temp_file, delimiter = ':')
     for word_key in sorted_postings:
         sorted_doc_list = sorted(sorted_postings[word_key])
         # print str(sorted_doc_list)
@@ -57,8 +59,10 @@ def write_postings():
                     temp_list.append(sorted_doc_list[i*gap])
                     temp_list.append(sorted_doc_list[(i+1)*gap])
                     sorted_doc_list[i*gap] = temp_list
-        postings_file.write(str(sorted_doc_list) + "\n")
-    postings_file.close()
+        # postings_file.write(str(sorted_doc_list) + "\n")
+        # postings_file.writelines(':'.join(str(k) for k in i) + ',' for i in sorted_doc_list)
+        postings_file.writerow(sorted_doc_list)
+    temp_file.close()
     
 
 def usage():
@@ -87,7 +91,7 @@ t0 = time.time()
 
 # go file by file and create dictionary and postings
 print "building index... \n"
-for doc_filename in os.listdir("reuters/training"):
+for doc_filename in os.listdir(documents_dir_i[1:]):
     # print "building index for " + doc_filename + "\n"
     build_index(doc_filename)
 
