@@ -7,12 +7,14 @@ import os
 import getopt
 import time
 from collections import OrderedDict
+import math
 
 dictionary = set()
 positngs_list = {}
 
 def build_index(doc_id):
     full_filename = documents_dir_i[1:] + doc_id
+    # print full_filename
     stemmer = nltk.stem.porter.PorterStemmer()
     doc_file = open(full_filename, 'r')
     for line in doc_file:
@@ -23,10 +25,12 @@ def build_index(doc_id):
                 clean_token = stemmer.stem(token).lower()
                 if clean_token.isalnum():
                     if clean_token in dictionary:
-                        positngs_list[clean_token].add(doc_id)
+                        positngs_list[clean_token].add(int(doc_id))
+                        # print str(positngs_list[clean_token])
                     else:
                         dictionary.add(clean_token)
-                        tempset = set(doc_id)
+                        tempset = set([int(doc_id)])
+                        # print "NEW SET!!!" + str(tempset)
                         positngs_list[clean_token] = tempset
 
 
@@ -42,8 +46,17 @@ def write_postings():
     postings_file = open(postings_file_p, 'w')
     for word_key in sorted_postings:
         sorted_doc_list = sorted(sorted_postings[word_key])
-        # insert skip pointers
-        # gap = int(math.sqrt(len(sorted_doc_list)))
+        # print str(sorted_doc_list)
+        # insert skip pointers if length is > 2, otherwise no point
+        doc_list_len = len(sorted_doc_list)
+        if (doc_list_len > 2):
+            gap = int(math.sqrt(doc_list_len))
+            for i in xrange(gap):
+                if (i+1)*gap < doc_list_len:                        
+                    temp_list = []
+                    temp_list.append(sorted_doc_list[i*gap])
+                    temp_list.append(sorted_doc_list[(i+1)*gap])
+                    sorted_doc_list[i*gap] = temp_list
         postings_file.write(str(sorted_doc_list) + "\n")
     postings_file.close()
     
