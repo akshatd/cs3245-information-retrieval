@@ -40,7 +40,7 @@ def build_index(doc_id):
 
 
 def write_dictionary():
-    dictionary["!!!"] = len(total_docs)
+    dictionary["!!!"] = total_docs
     sorted_dictionary = OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
     dict_file = open(dictionary_file_d, 'wb')
     pickle.dump(sorted_dictionary, dict_file)
