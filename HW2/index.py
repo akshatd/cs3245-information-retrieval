@@ -11,7 +11,7 @@ import math
 import csv
 
 dictionary = set()
-positngs_list = {}
+postings_list = {}
 
 def build_index(doc_id):
     full_filename = documents_dir_i[1:] + doc_id
@@ -26,13 +26,13 @@ def build_index(doc_id):
                 clean_token = stemmer.stem(token).lower()
                 if clean_token.isalnum():
                     if clean_token in dictionary:
-                        positngs_list[clean_token].add(int(doc_id))
-                        # print str(positngs_list[clean_token])
+                        postings_list[clean_token].add(int(doc_id))
+                        # print str(postings_list[clean_token])
                     else:
                         dictionary.add(clean_token)
                         tempset = set([int(doc_id)])
                         # print "NEW SET!!!" + str(tempset)
-                        positngs_list[clean_token] = tempset
+                        postings_list[clean_token] = tempset
 
 
 def write_dictionary():
@@ -43,7 +43,7 @@ def write_dictionary():
     dict_file.close()
 
 def write_postings():
-    sorted_postings = OrderedDict(sorted(positngs_list.items(), key=lambda t: t[0]))
+    sorted_postings = OrderedDict(sorted(postings_list.items(), key=lambda t: t[0]))
     temp_file = open(postings_file_p, 'w')
     postings_file = csv.writer(temp_file, delimiter = ':')
     for word_key in sorted_postings:
