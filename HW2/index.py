@@ -8,9 +8,12 @@ import getopt
 import time
 from collections import OrderedDict
 import math
-import csv
+# import csv
+import cPickle as pickle
 
-dictionary = set()
+dictionary = {}
+dictionary["!!!"] = 0
+total_docs = set()
 postings_list = {}
 
 def build_index(doc_id):
@@ -25,27 +28,30 @@ def build_index(doc_id):
             for token in tokens:
                 clean_token = stemmer.stem(token).lower()
                 if clean_token.isalnum():
+                    total_docs.add(int(doc_id))
                     if clean_token in dictionary:
                         postings_list[clean_token].add(int(doc_id))
                         # print str(postings_list[clean_token])
                     else:
-                        dictionary.add(clean_token)
+                        dictionary[clean_token] = ""
                         tempset = set([int(doc_id)])
                         # print "NEW SET!!!" + str(tempset)
                         postings_list[clean_token] = tempset
 
 
 def write_dictionary():
-    sorted_dictionary = sorted(dictionary)
-    dict_file = open(dictionary_file_d, 'w')
-    for word in sorted_dictionary:
-        dict_file.write(word + "\n")
+    dictionary["!!!"] = len(total_docs)
+    sorted_dictionary = OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+    dict_file = open(dictionary_file_d, 'wb')
+    pickle.dump(sorted_dictionary, dict_file)
+    # for word in sorted_dictionary:
+    #     dict_file.write(word + "\n")
     dict_file.close()
 
 def write_postings():
     sorted_postings = OrderedDict(sorted(postings_list.items(), key=lambda t: t[0]))
-    temp_file = open(postings_file_p, 'w')
-    postings_file = csv.writer(temp_file, delimiter = ':')
+    temp_file = open(postings_file_p, 'wb')
+    # postings_file = csv.writer(temp_file, delimiter = ':')
     for word_key in sorted_postings:
         sorted_doc_list = sorted(sorted_postings[word_key])
         # print str(sorted_doc_list)
@@ -55,13 +61,19 @@ def write_postings():
             gap = int(math.sqrt(doc_list_len))
             for i in xrange(gap):
                 if (i+1)*gap < doc_list_len:                        
-                    temp_list = []
-                    temp_list.append(sorted_doc_list[i*gap])
-                    temp_list.append(sorted_doc_list[(i+1)*gap])
+                    temp_list = (sorted_doc_list[i*gap], (i+1)*gap)
+                    # temp_list.append(sorted_doc_list[i*gap])
+                    # temp_list.append(sorted_doc_list[(i+1)*gap])
+                    # appending index itself
+                    # temp_list.append((i+1)*gap)
+                    
                     sorted_doc_list[i*gap] = temp_list
         # postings_file.write(str(sorted_doc_list) + "\n")
         # postings_file.writelines(':'.join(str(k) for k in i) + ',' for i in sorted_doc_list)
-        postings_file.writerow(sorted_doc_list)
+        # postings_file.writerow(sorted_doc_list)
+        file_pointer = temp_file.tell()
+        dictionary[word_key] = (doc_list_len, file_pointer)
+        temp_file.write(str(sorted_doc_list) + '\n')
     temp_file.close()
     
 
@@ -95,11 +107,13 @@ for doc_filename in os.listdir(documents_dir_i[1:]):
     # print "building index for " + doc_filename + "\n"
     build_index(doc_filename)
 
+# must do this first to get the byte offset for the dictionary file
+print "writing postings\n"
+write_postings()
+
 print "writing dictionary\n"
 write_dictionary()
 
-print "writing postings\n"
-write_postings()
 
 t1 = time.time()
 
