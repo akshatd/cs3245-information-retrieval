@@ -13,7 +13,7 @@ import cPickle as pickle
 
 dictionary = {}
 dictionary["!!!"] = 0
-total_docs = set()
+total_docs = set([])
 postings_list = {}
 
 def build_index(doc_id):
@@ -26,7 +26,9 @@ def build_index(doc_id):
         for word in sentence:
             tokens = nltk.word_tokenize(word)
             for token in tokens:
-                clean_token = stemmer.stem(token).lower()
+                clean_token = stemmer.stem(token).lower()              
+                if int(doc_id) == 99:
+                    print clean_token
                 if clean_token.isalnum():
                     total_docs.add(int(doc_id))
                     if clean_token in dictionary:
@@ -57,17 +59,17 @@ def write_postings():
         # print str(sorted_doc_list)
         # insert skip pointers if length is > 2, otherwise no point
         doc_list_len = len(sorted_doc_list)
-        if (doc_list_len > 2):
-            gap = int(math.sqrt(doc_list_len))
-            for i in xrange(gap):
-                if (i+1)*gap < doc_list_len:                        
-                    temp_list = (sorted_doc_list[i*gap], (i+1)*gap)
-                    # temp_list.append(sorted_doc_list[i*gap])
-                    # temp_list.append(sorted_doc_list[(i+1)*gap])
-                    # appending index itself
-                    # temp_list.append((i+1)*gap)
+        # if (doc_list_len > 2):
+        #     gap = int(math.sqrt(doc_list_len))
+        #     for i in xrange(gap):
+        #         if (i+1)*gap < doc_list_len:                        
+        #             temp_list = (sorted_doc_list[i*gap], (i+1)*gap)
+        #             # temp_list.append(sorted_doc_list[i*gap])
+        #             # temp_list.append(sorted_doc_list[(i+1)*gap])
+        #             # appending index itself
+        #             # temp_list.append((i+1)*gap)
                     
-                    sorted_doc_list[i*gap] = temp_list
+        #             sorted_doc_list[i*gap] = temp_list
         # postings_file.write(str(sorted_doc_list) + "\n")
         # postings_file.writelines(':'.join(str(k) for k in i) + ',' for i in sorted_doc_list)
         # postings_file.writerow(sorted_doc_list)
@@ -103,6 +105,7 @@ t0 = time.time()
 
 # go file by file and create dictionary and postings
 print "building index... \n"
+# print os.listdir(documents_dir_i[1:])
 for doc_filename in os.listdir(documents_dir_i[1:]):
     # print "building index for " + doc_filename + "\n"
     build_index(doc_filename)
