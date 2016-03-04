@@ -17,6 +17,7 @@ total_docs = set([])
 postings_list = {}
 
 def build_index(doc_id):
+    total_docs.add(int(doc_id))
     full_filename = documents_dir_i[1:] + doc_id
     # print full_filename
     stemmer = nltk.stem.porter.PorterStemmer()
@@ -26,11 +27,8 @@ def build_index(doc_id):
         for word in sentence:
             tokens = nltk.word_tokenize(word)
             for token in tokens:
-                clean_token = stemmer.stem(token).lower()              
-                if int(doc_id) == 99:
-                    print clean_token
+                clean_token = stemmer.stem(token).lower()
                 if clean_token.isalnum():
-                    total_docs.add(int(doc_id))
                     if clean_token in dictionary:
                         postings_list[clean_token].add(int(doc_id))
                         # print str(postings_list[clean_token])

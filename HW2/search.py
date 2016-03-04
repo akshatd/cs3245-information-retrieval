@@ -1,11 +1,13 @@
 #HW2 by akshat dubey
 #used reuters training data for this HW, found in NLTK toolkit
 import ast
+import cPickle as pickle
+import getopt
+import math
 import nltk
 import sys
-import getopt
-import cPickle as pickle
-count = 0
+import time
+
 stemmer = nltk.stem.porter.PorterStemmer()
 all_list = []
 
@@ -55,12 +57,10 @@ def get_postings_list(word):
     return postings_list
 
 def not_list(xs):
-    global count
     zs = []
     ys = all_list
     x_i, y_i = 0, 0
     while(x_i < len(xs)):
-        count += 1
         x, y = xs[x_i], ys[y_i]
 
         if (x == y):
@@ -73,11 +73,11 @@ def not_list(xs):
     return zs
 
 def and_list(xs, ys):
-    global count
+    x_gap = int(math.sqrt(len(xs)))
+    y_gap = int(math.sqrt(len(ys)))
     zs = []
     x_i, y_i = 0, 0
     while(x_i < len(xs) and y_i < len(ys)):
-        count += 1
         x, y = xs[x_i], ys[y_i]
 
         if (x == y):
@@ -85,18 +85,22 @@ def and_list(xs, ys):
             x_i += 1
             y_i += 1
         elif (x < y):
-            x_i += 1
+            if (x_i + x_gap < len(xs) and xs[x_i + x_gap] <= y):
+                x_i += x_gap
+            else:
+                x_i += 1
         elif (x > y):
-            y_i += 1
+            if (y_i + y_gap < len(ys) and ys[y_i + y_gap] <= x):
+                y_i += y_gap
+            else:
+                y_i += 1
 
     return zs
 
 def or_list(xs, ys):
-    global count
     zs = []
     x_i, y_i = 0, 0
     while(x_i < len(xs) and y_i < len(ys)):
-        count += 1
         x, y = xs[x_i], ys[y_i]
 
         if (x == y):
@@ -154,15 +158,11 @@ def perform_operations(ops):
     return os.pop()
 
 def answer_queries():
-    global count
     queries_file = open(query_file_q, 'r')
     queries = queries_file.read().splitlines()
     output = open(output_file_o, 'w')
     for query in queries:
-        count = 0
         ops = parse_query(query)
-        print query
-        print ops
         output_list = perform_operations(ops)
         notFirst = False
         for id in output_list:
@@ -171,7 +171,6 @@ def answer_queries():
             output.write(str(id))
             notFirst = True
         output.write('\n')
-        print "NUM COUNT = " + str(count)
 
 def usage():
     print "usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results"
@@ -201,6 +200,7 @@ if dictionary_file_d == None or postings_file_p == None or query_file_q == None 
     # usage()
     # sys.exit(2)
 
+t0 = time.time()
 print "reading dictionary"
 words = pickle.load(open(dictionary_file_d, 'r'))
 all_list = words.items()[0][1]
@@ -208,10 +208,5 @@ print "opening postings file"
 postings = open(postings_file_p, 'r')
 print ("answering queries...")
 answer_queries()
-
-# t0 = time.time()
-# LM = build_LM(input_file_b)
-# test_LM(input_file_t, output_file, LM)
-# t1 = time.time()
-
-# print "this run with n=" + str(gram_size) + " took " + str(t1-t0)
+t1 = time.time()
+print "this run took " + str(t1-t0)

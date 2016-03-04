@@ -4,3 +4,4 @@ bill OR (vista OR XP) AND Gates AND NOT mac
 bill OR (vista OR XP) AND NOT mac AND Gates 
 bill OR NOT mac AND Gates AND (vista OR XP)
 bill OR NOT mac AND (vista OR XP) AND Gates
+of AND bill
