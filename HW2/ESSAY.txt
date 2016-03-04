@@ -8,22 +8,28 @@ normalize these numbers? How many percentage of reduction in disk storage do you
 removing/normalizing these numbers?
 
 We can remove most of the numbers from our dictionary, since most of them do not seem to make any sense by themselves, like singular digits. However, some numbers may have some value for example dates, phone numbers, percentages and money. We can have different filters to look for these kind of number formats, and normalise them to a single type and store them in our dictionary. For example, we could look for numbers representing dates in a variety of different formats, like DD/MM/YY, or DD/MMM/YYYY and normalise and store them. if we do this, we would be able to allow more sophisticated queries, like returning a list of docs which contain dates between a certain period, or returning a list of documents that contain a range of phone numbers. Of course, for doing this, the numbers in the search queries will have to be normalised in the same way as the indexing.
-For our simple case, we can see a big advantage when we remove the numbers, as both the dictionary and the postings size reduces:
 
+For our simple case, we can see a big advantage when we remove the numbers, as both the dictionary and the postings size reduces:
+Percentage change for dictionary file size = (861K / 908K * 100%) = 94%
+Percentage change for postings file size = (2.9M / 3.0M * 100%) = 97%
 
 
 2. What do you think will happen if we remove stop words from the dictionary and postings file? How
 does it affect the searching phase?
 
-If we remove during the indexing phase and not include them in the index and posting file, we will see only a slight reduction in the size of the dictionary but a larger reduction in the size of the postings file. This is because the stopwords will occur in most of the documents, hence having huge positings list containing almost every document.
+If we remove during the indexing phase and not include them in the index and posting file, we will see only a slight reduction in the size of the dictionary but a larger reduction in the size of the postings file. This is because the stopwords will occur in most of the documents, hence having huge postings list containing almost every document.
 
-As for the searching phase, removing stopwords wouldnt have much effect because our search engine is a boolean search engine, and queries will not include stop words that often simply because stopwords will not add any value to the search queries anyways. If, however, our searching phase allowed the users to type in phrases and not individual tokens which had to be matched in say, a positional index, stop words would be more useful to index. They would allow us to process more contextual information that would help us get more accurate search results.
+As for the searching phase, removing stopwords wouldn't have much effect because our search engine is a boolean search engine, and queries will not include stop words that often simply because stopwords will not add any value to the search queries anyways. If, however, our searching phase allowed the users to type in phrases and not individual tokens which had to be matched in say, a positional index, stop words would be more useful to index. They would allow us to process more contextual information that would help us get more accurate search results.
 
+For our simple case, we can see a big advantage when we remove the stopwords, as both the dictionary and the postings size reduces:
+Percentage change for dictionary file size = (902K / 908K * 100%) = 99%
+Percentage change for postings file size = (2.4M / 3.0M * 100%) = 80%
 
 3. The NLTK tokenizer may not correctly tokenize all terms. What do you observe from the resulting
 terms produced by sent_tokenize() and word_tokenize() ? Can you propose rules to further
 refine these results?
 
-The sentence tokeniser works as expected, breaking down the corpus into sentences. This is very good, but not really very necessary in our case since we are only indexing individual tokens. Hence, we should just concentrate on tokenizing words, unless we need whole phrases for matching context.
+The sentence tokeniser works as expected, breaking down the corpus into sentences. This is very good, but not really very necessary in our case since we are only indexing individual tokens. Hence, we should just concentrate on tokenizing words, unless we need whole phrases, which cannot spill over to other sentences.
 The word tokenizer is okay, since it can split the sentences into words separated by whitespace. However, it is not very good at tokenising numbers. As mentioned in the answer for question 1, numbers either need to be ignored or need to be handled separately because they usually do not make sense unless we fit them into a certain pattern(dates, ZIP codes, phone numbers) or look at the words surrounding them(age, units of measurement).
 Hence we would need rules to handle tokens that contain numbers and process them accordingly. We could first try to fit them in a certain pattern, and interpret them as a phone number, date, ZIP code, etc. If they cant confirm to our pre defined pattern, we can look at the surrounding words and try to derive some meaning out of it. After we can recognise and assign some meaning to the numbers, we can tag them appropriately to interpret them when a search query is issued, thus being able to refine the search results.
+
