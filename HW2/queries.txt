@@ -5,3 +5,9 @@ bill OR (vista OR XP) AND NOT mac AND Gates
 bill OR NOT mac AND Gates AND (vista OR XP)
 bill OR NOT mac AND (vista OR XP) AND Gates
 of AND bill
+money AND NOT (city OR bank OR fund OR supply OR trust OR exchange)
+money AND NOT (city OR bank OR fund OR supply OR trust OR exchange OR trade)
+money AND NOT (city OR bank OR fund OR supply OR trust OR exchange OR trade OR business)
+apple
+money AND NOT (city OR bank OR fund OR supply OR trust OR exchange OR trade OR business) OR apple
+money AND NOT (city OR bank OR fund OR supply OR trust OR exchange OR trade OR business) AND apple

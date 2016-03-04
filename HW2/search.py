@@ -12,6 +12,9 @@ stemmer = nltk.stem.porter.PorterStemmer()
 all_list = []
 
 def parse_query(query):
+    '''
+    parses the query using dijkstra's Shunting Yard algorithm to convert an infix notation to polish post fix notation.
+    '''
     args = []
     ops = []
     tokens = nltk.word_tokenize(query)
@@ -24,9 +27,13 @@ def parse_query(query):
                     ops.append(args.pop())
             args.append(token)
         elif (token == 'OR'):
-            if (len(args) > 0):
-                while(args[len(args) - 1] == 'NOT' or args[len(args) - 1] == 'AND'):
+            while(True):
+                if (len(args) <= 0):
+                    break
+                elif (args[len(args) - 1] == 'NOT' or args[len(args) - 1] == 'AND'):
                     ops.append(args.pop())
+                else:
+                    break
             args.append(token)
         elif (token == '('):
             args.append(token)
@@ -50,6 +57,9 @@ def parse_query(query):
     return ops
 
 def get_postings_list(word):
+    '''
+    retrieves the posting list from the postings file based on the word offset in the dictionary file
+    '''
     offset = words[word][1]
     postings.seek(offset)
     line = postings.readline()
@@ -57,6 +67,9 @@ def get_postings_list(word):
     return postings_list
 
 def not_list(xs):
+    '''
+    inverts the list by taking the difference between the universal list and this supplied list
+    '''
     zs = []
     ys = all_list
     x_i, y_i = 0, 0
@@ -73,6 +86,9 @@ def not_list(xs):
     return zs
 
 def and_list(xs, ys):
+    '''
+    returns the intersection of the two lists supplied
+    '''
     x_gap = int(math.sqrt(len(xs)))
     y_gap = int(math.sqrt(len(ys)))
     zs = []
@@ -98,6 +114,9 @@ def and_list(xs, ys):
     return zs
 
 def or_list(xs, ys):
+    '''
+    returns the union of the two lists supplied.
+    '''
     zs = []
     x_i, y_i = 0, 0
     while(x_i < len(xs) and y_i < len(ys)):
@@ -122,6 +141,9 @@ def or_list(xs, ys):
     return zs
 
 def perform_operations(ops):
+    '''
+    executes the post fix stack and optimizes boolean operations in order.
+    '''
     os = []
     for op_i in range(len(ops)):
         op = ops[op_i]
@@ -141,7 +163,7 @@ def perform_operations(ops):
             if (and_count > 1):
                 os_vals = os[(len(os) - (and_count + 1)):]
                 os_vals.sort(key=len)
-                os = os[:and_count + 1]
+                os = os[:len(os) - (and_count + 1)]
                 os_vals.reverse()
                 os += os_vals
 
