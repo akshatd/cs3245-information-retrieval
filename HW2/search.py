@@ -137,6 +137,22 @@ def perform_operations(ops):
             idxs = os.pop()
             os.append(not_list(idxs))
         elif (op == 'AND'):
+            # reorder operand stack os for maximum efficiency
+            and_count = 1
+            for i in range(op_i + 1, len(ops)):
+                if (ops[i] == 'AND'):
+                    and_count += 1
+                else:
+                    break
+
+            # reorder and_count + 1 top elements in the os
+            if (and_count > 1):
+                os_vals = os[(len(os) - (and_count + 1)):]
+                os_vals.sort(key=len)
+                os = os[:and_count + 1]
+                os_vals.reverse()
+                os += os_vals
+
             idxs1 = os.pop()
             idxs2 = os.pop()
             os.append(and_list(idxs1, idxs2))
