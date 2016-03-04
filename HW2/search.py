@@ -62,10 +62,6 @@ def not_list(xs):
     while(x_i < len(xs)):
         count += 1
         x, y = xs[x_i], ys[y_i]
-        if (type(x) == type((1, 2))):
-            x = x[0]
-        if (type(y) == type((1, 2))):
-            y = y[0]
 
         if (x == y):
             x_i += 1
@@ -83,10 +79,6 @@ def and_list(xs, ys):
     while(x_i < len(xs) and y_i < len(ys)):
         count += 1
         x, y = xs[x_i], ys[y_i]
-        if (type(x) == type((1, 2))):
-            x = x[0]
-        if (type(y) == type((1, 2))):
-            y = y[0]
 
         if (x == y):
             zs.append(x)
@@ -106,10 +98,6 @@ def or_list(xs, ys):
     while(x_i < len(xs) and y_i < len(ys)):
         count += 1
         x, y = xs[x_i], ys[y_i]
-        if (type(x) == type((1, 2))):
-            x = x[0]
-        if (type(y) == type((1, 2))):
-            y = y[0]
 
         if (x == y):
             zs.append(x)
@@ -180,8 +168,6 @@ def answer_queries():
         for id in output_list:
             if (notFirst):
                 output.write(' ')
-            if (type(id) == type((1, 2))):
-                id = id[0]
             output.write(str(id))
             notFirst = True
         output.write('\n')
