@@ -1,2 +1,2 @@
-# CS3245
-IR homework and assignment repo
+# CS3245 Information Retreival
+IR assignment and projects
