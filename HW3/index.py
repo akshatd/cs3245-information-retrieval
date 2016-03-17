@@ -11,14 +11,21 @@ import math
 # import csv
 import cPickle as pickle
 
+# dictionary to keep terms
 dictionary = {}
+# dictionary entry to keep all the docIDs and their document length
 dictionary["!!!"] = 0
-total_docs = set([])
+
+# set of docIDs and their lengths
+total_docs = {}
+
+# dict to keep postings list
 postings_list = {}
 
+# build index
 def build_index(doc_id):
-    total_docs.add(int(doc_id))
-    full_filename = documents_dir_i[1:] + doc_id
+    doc_len_dict = {}
+    full_filename = documents_dir_i[1:] + str(doc_id)
     # print full_filename
     stemmer = nltk.stem.porter.PorterStemmer()
     doc_file = open(full_filename, 'r')
@@ -29,32 +36,50 @@ def build_index(doc_id):
             for token in tokens:
                 clean_token = stemmer.stem(token).lower()
                 if clean_token.isalnum():
-                    if clean_token in dictionary:
-                        postings_list[clean_token].add(int(doc_id))
-                        # print str(postings_list[clean_token])
-                    else:
+                    # add term to the list for the doc
+                    if clean_token in doc_len_dict: # increment the term frequency in the doc
+                        doc_len_dict[clean_token] = doc_len_dict[clean_token]+1
+                    else: # initialise the term in the doc             
+                        doc_len_dict[clean_token] = 1
+                    
+                    # add term to the main dictionary
+                    if clean_token in dictionary: # add term to the doc freq in the posting
+                        if doc_id in postings_list[clean_token]: # if doc alr present
+                            postings_list[clean_token][doc_id] = postings_list[clean_token][doc_id]+1
+                        else: # if doc occurring for the first time
+                            postings_list[clean_token][doc_id] = 1
+                    else: # the term occurring for the first time, add to dict and postings
                         dictionary[clean_token] = ""
-                        tempset = set([int(doc_id)])
-                        # print "NEW SET!!!" + str(tempset)
-                        postings_list[clean_token] = tempset
+                        # initialise dict at term in postings
+                        postings_list[clean_token] = {}
+                        postings_list[clean_token][doc_id] = 1
+    
+    # caclulate the document length using cosine
+    accum = 0
+    for term in doc_len_dict:
+        accum = accum + math.pow(math.log(doc_len_dict[term], 10), 2)
+
+    total_docs[doc_id] = math.sqrt(accum)
+
 
 
 def write_dictionary():
-    dictionary["!!!"] = sorted(total_docs)
+    # sort the docs by their docIDs, and this time they will have their document lengths
+    dictionary["!!!"] = sorted(total_docs.items(), key=lambda t: t[0])
+    # sort the entire dictionary
     sorted_dictionary = OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+    # write to file
     dict_file = open(dictionary_file_d, 'wb')
     pickle.dump(sorted_dictionary, dict_file)
-    # for word in sorted_dictionary:
-    #     dict_file.write(word + "\n")
     dict_file.close()
 
 def write_postings():
+    # sort the postings list
     sorted_postings = OrderedDict(sorted(postings_list.items(), key=lambda t: t[0]))
+    
     temp_file = open(postings_file_p, 'wb')
-    # postings_file = csv.writer(temp_file, delimiter = ':')
     for word_key in sorted_postings:
-        sorted_doc_list = sorted(sorted_postings[word_key])
-        # print str(sorted_doc_list)
+        sorted_doc_list = sorted(sorted_postings[word_key].items(), key=lambda t: t[0])
         # insert skip pointers if length is > 2, otherwise no point
         doc_list_len = len(sorted_doc_list)
         # if (doc_list_len > 2):
@@ -72,8 +97,8 @@ def write_postings():
         # postings_file.writelines(':'.join(str(k) for k in i) + ',' for i in sorted_doc_list)
         # postings_file.writerow(sorted_doc_list)
         file_pointer = temp_file.tell()
-        dictionary[word_key] = (doc_list_len, file_pointer)
         temp_file.write(str(sorted_doc_list) + '\n')
+        dictionary[word_key] = (doc_list_len, file_pointer)
     temp_file.close()
     
 
@@ -103,10 +128,9 @@ t0 = time.time()
 
 # go file by file and create dictionary and postings
 print "building index... \n"
-# print os.listdir(documents_dir_i[1:])
 for doc_filename in os.listdir(documents_dir_i[1:]):
     # print "building index for " + doc_filename + "\n"
-    build_index(doc_filename)
+    build_index(int(doc_filename))
 
 # must do this first to get the byte offset for the dictionary file
 print "writing postings\n"
@@ -114,7 +138,6 @@ write_postings()
 
 print "writing dictionary\n"
 write_dictionary()
-
 
 t1 = time.time()
 
