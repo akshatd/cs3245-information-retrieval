@@ -3,6 +3,7 @@ from __future__ import division
 import ast
 import cPickle as pickle
 import getopt
+import heapq
 import math
 import nltk
 import sys
@@ -80,10 +81,10 @@ def answer_queries():
     for raw_query in queries:
         query = parse_query(raw_query)
         Scores = cosine_score(query)
-        sorted_scores = sorted(Scores.items(), key=lambda x: (x[1], x[0]), reverse=True)
+        sorted_scores = heapq.nlargest(min(len(Scores), 10), Scores.items(), key=lambda x: (x[1], x[0]))
         output_list = []
-        for i in range(min(len(sorted_scores), 10)):
-            output_list.append(sorted_scores[i][0])
+        for score in sorted_scores:
+            output_list.append(score[0])
         output.write(' '.join([str(i) for i in output_list]))
         output.write('\n')
 
