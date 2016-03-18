@@ -1,4 +1,4 @@
-#HW2 by akshat dubey
+#HW3 by akshat dubey
 #used reuters training data for this HW, found in NLTK toolkit
 
 import nltk

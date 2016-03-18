@@ -1,5 +1,5 @@
-#HW2 by akshat dubey
-#used reuters training data for this HW, found in NLTK toolkit
+#HW3 by Varun Patro
+from __future__ import division
 import ast
 import cPickle as pickle
 import getopt
@@ -8,190 +8,64 @@ import nltk
 import sys
 import time
 
+
 stemmer = nltk.stem.porter.PorterStemmer()
 all_list = []
+all_dict = dict()
+N = 1
+Scores = dict()
 
 def parse_query(query):
-    '''
-    parses the query using dijkstra's Shunting Yard algorithm to convert an infix notation to polish post fix notation.
-    '''
-    args = []
-    ops = []
-    tokens = nltk.word_tokenize(query)
-    for token in tokens:
-        if (token == 'NOT'):
-            args.append(token)
-        elif (token == 'AND'):
-            if (len(args) > 0):
-                while(args[len(args) - 1] == 'NOT'):
-                    ops.append(args.pop())
-            args.append(token)
-        elif (token == 'OR'):
-            while(True):
-                if (len(args) <= 0):
-                    break
-                elif (args[len(args) - 1] == 'NOT' or args[len(args) - 1] == 'AND'):
-                    ops.append(args.pop())
-                else:
-                    break
-            args.append(token)
-        elif (token == '('):
-            args.append(token)
-        elif (token == ')'):
-            while (len(args) > 0):
-                arg = args.pop()
-                if (arg != '('):
-                    ops.append(arg)
-                else:
-                    break
-            if (len(args) == 0):
-                print "Query is invalid. Brackets don't match."
-                sys.exit(1)
-        else:
-            processed_token = stemmer.stem(token.lower())
-            ops.append(processed_token)
+    return stemmer.stem(query.lower())
 
-    while(len(args) > 0):
-        ops.append(args.pop())
+def ltc_vec(query):
+    global Scores
+    Scores = dict()
+    q_terms = nltk.word_tokenize(query)
+    q_vec = dict()
+    total_wtq = 0
 
-    return ops
+    for term in q_terms:
+        raw_tf = q_terms.count(term)
+        tf = 1 + math.log(raw_tf, 10)
+        if term in words:
+            postings_info = words[term]
+            df = (postings_info[0])
+            idf = math.log(N / df, 10)
+            wtq = tf * idf
+            total_wtq += wtq ** 2
+            q_vec[term] = dict()
+            q_vec[term]['wtq'] = wtq
 
-def get_postings_list(word):
-    '''
-    retrieves the posting list from the postings file based on the word offset in the dictionary file
-    '''
-    offset = words[word][1]
-    postings.seek(offset)
-    line = postings.readline()
-    postings_list = ast.literal_eval(line)
-    return postings_list
+    for term in q_vec:
+        q_vec[term]['norm'] = q_vec[term]['wtq'] / math.sqrt(total_wtq)
 
-def not_list(xs):
-    '''
-    inverts the list by taking the difference between the universal list and this supplied list
-    '''
-    zs = []
-    ys = all_list
-    x_i, y_i = 0, 0
-    while(x_i < len(xs)):
-        x, y = xs[x_i], ys[y_i]
-
-        if (x == y):
-            x_i += 1
-            y_i += 1
-        else:
-            zs.append(y)
-            y_i += 1
-    zs += ys[y_i:]
-    return zs
-
-def and_list(xs, ys):
-    '''
-    returns the intersection of the two lists supplied
-    '''
-    x_gap = int(math.sqrt(len(xs)))
-    y_gap = int(math.sqrt(len(ys)))
-    zs = []
-    x_i, y_i = 0, 0
-    while(x_i < len(xs) and y_i < len(ys)):
-        x, y = xs[x_i], ys[y_i]
-
-        if (x == y):
-            zs.append(x)
-            x_i += 1
-            y_i += 1
-        elif (x < y):
-            if (x_i + x_gap < len(xs) and xs[x_i + x_gap] <= y):
-                x_i += x_gap
+    for term in q_vec:
+        postings_info = words[term]
+        postings_offset = postings_info[1]
+        postings.seek(postings_offset)
+        line = postings.readline()
+        p_list = ast.literal_eval(line)
+        for pair in p_list:
+            wtd = 1 + math.log(pair[1], 10)
+            if pair[0] in Scores:
+                Scores[pair[0]] += q_vec[term]['norm'] * wtd
             else:
-                x_i += 1
-        elif (x > y):
-            if (y_i + y_gap < len(ys) and ys[y_i + y_gap] <= x):
-                y_i += y_gap
-            else:
-                y_i += 1
+                Scores[pair[0]] = q_vec[term]['norm'] * wtd
 
-    return zs
-
-def or_list(xs, ys):
-    '''
-    returns the union of the two lists supplied.
-    '''
-    zs = []
-    x_i, y_i = 0, 0
-    while(x_i < len(xs) and y_i < len(ys)):
-        x, y = xs[x_i], ys[y_i]
-
-        if (x == y):
-            zs.append(x)
-            x_i += 1
-            y_i += 1
-        elif (x < y):
-            zs.append(x)
-            x_i += 1
-        elif (x > y):
-            zs.append(y)
-            y_i += 1
-
-    if (x_i < len(xs)):
-        zs += xs[x_i:]
-    elif (y_i < len(ys)):
-        zs += ys[y_i:]
-
-    return zs
-
-def perform_operations(ops):
-    '''
-    executes the post fix stack and optimizes boolean operations in order.
-    '''
-    os = []
-    for op_i in range(len(ops)):
-        op = ops[op_i]
-        if (op == 'NOT'):
-            idxs = os.pop()
-            os.append(not_list(idxs))
-        elif (op == 'AND'):
-            # reorder operand stack os for maximum efficiency
-            and_count = 1
-            for i in range(op_i + 1, len(ops)):
-                if (ops[i] == 'AND'):
-                    and_count += 1
-                else:
-                    break
-
-            # reorder and_count + 1 top elements in the os
-            if (and_count > 1):
-                os_vals = os[(len(os) - (and_count + 1)):]
-                os_vals.sort(key=len)
-                os = os[:len(os) - (and_count + 1)]
-                os_vals.reverse()
-                os += os_vals
-
-            idxs1 = os.pop()
-            idxs2 = os.pop()
-            os.append(and_list(idxs1, idxs2))
-        elif (op == 'OR'):
-            idxs1 = os.pop()
-            idxs2 = os.pop()
-            os.append(or_list(idxs1, idxs2))
-        else:
-           os.append(get_postings_list(op))
-
-    return os.pop()
+    for tid in Scores:
+        Scores[tid] = Scores[tid] / all_dict[tid]
 
 def answer_queries():
     queries_file = open(query_file_q, 'r')
     queries = queries_file.read().splitlines()
     output = open(output_file_o, 'w')
-    for query in queries:
-        ops = parse_query(query)
-        output_list = perform_operations(ops)
-        notFirst = False
-        for id in output_list:
-            if (notFirst):
-                output.write(' ')
-            output.write(str(id))
-            notFirst = True
+    for raw_query in queries:
+        query = parse_query(raw_query)
+        q_vec = ltc_vec(query)
+        sorted_scores = sorted(Scores.items(), key=lambda x: (x[1], x[0]), reverse=True)
+        for i in range(min(len(sorted_scores), 10)):
+            output.write(str(sorted_scores[i][0]) + ' ')
         output.write('\n')
 
 def usage():
@@ -226,6 +100,8 @@ t0 = time.time()
 print "reading dictionary"
 words = pickle.load(open(dictionary_file_d, 'r'))
 all_list = words.items()[0][1]
+all_dict = dict(all_list)
+N = len(all_dict)
 print "opening postings file"
 postings = open(postings_file_p, 'r')
 print ("answering queries...")
